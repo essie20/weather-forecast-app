@@ -1,0 +1,19 @@
+.weather-card {
+  padding: 0.5rem;
+  margin: 0.5rem;
+  white-space: nowrap;
+}
+
+.forecast-header {
+  margin-bottom: 1rem;
+}
+
+.input-container {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.input-container button {
+  flex-shrink: 3;
+}
