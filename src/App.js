@@ -4,16 +4,20 @@ import '@picocss/pico'
 import WeatherCard from "./components/WeatherCard";
 import LocationSearch from "./components/LocationSearch";
 
-const apiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=63.10&longitude=21.62&timezone=Europe/Helsinki&daily=temperature_2m_max,temperature_2m_min'
-
 function App() {
   let [weatherDailyForecast, setWeatherDailyForecast] = useState([]);
+  let [currentWeather, setCurrentWeather] = useState();
 
   async function getForecast(location) {
     console.log(location)
-    let response = await fetch(apiUrl);
+    let latitude = parseFloat(location.lat);
+    let longitude = parseFloat(location.lon);
+    let params = `latitude=${latitude}&longitude=${longitude}`
+    let response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}&timezone=Europe/Helsinki&daily=temperature_2m_max,temperature_2m_min&current_weather=true`);
     let data = await response.json();
-    console.log(data);
+
+    data.current_weather.unit = '°C'
+    setCurrentWeather(data.current_weather)
 
     let dailyValues = [];
     for (let i = 0; i < data.daily.time.length; i++) {
@@ -27,11 +31,21 @@ function App() {
 
     setWeatherDailyForecast(dailyValues);
   }
-
+  
+  let displayCurrentWeather;
+  if (currentWeather) {
+    displayCurrentWeather = (
+      <div className="current-weather">
+        Current temperature: {currentWeather.temperature} {currentWeather.unit}
+      </div>
+    )
+  }
+   
   return (
     <div className="container-fluid">
       <LocationSearch getForecast={getForecast}/>
-      <h4 className="forecast-header">7 day weather forecast</h4>
+      <h3 className="forecast-header">7 day weather forecast</h3>
+      {displayCurrentWeather}
       <div className="grid">
         {
           weatherDailyForecast.map((forecastValue, i) => {

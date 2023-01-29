@@ -8,15 +8,10 @@ function LocationSearch({ getForecast }) {
 
   async function searchCities(searchString) {
     if (!searchString) return [];
-
     let params = `city=${searchString}`;
     let response = await fetch(`https://cors-anywhere.herokuapp.com/https://nominatim.openstreetmap.org/search?${params}&format=json&addressdetails=1`);
     let data = await response.json();
-    console.log('data', data)
-
     let cities = data.filter(city => city.address.city)
-    console.log('cities', cities)
-
     let cityOptions = 
       cities.map(city => {
         return { 
@@ -26,8 +21,6 @@ function LocationSearch({ getForecast }) {
           lon: city.lon
         }
       })
-    console.log('options', cityOptions)
-
     return cityOptions;
   }
 
@@ -55,7 +48,7 @@ function LocationSearch({ getForecast }) {
         loadOptions={loadOptions}
         />
       <div className="button-forecast">
-        <button onClick={() => getForecast()}>Get forecast</button>
+        <button onClick={() => getForecast(selectedCity)}>Get forecast</button>
       </div>
     </div>
   )
