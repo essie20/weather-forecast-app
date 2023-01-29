@@ -1,63 +1,63 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import AsyncSelect from 'react-select/async';
 
 function LocationSearch({ getForecast }) {
 
-  const [autocompleteCities, setAutocompleteCities] = useState([]);
-  const [searchTerm, setSearchTerm] = useState([]);
+  let [debounceTimerId, setDebounceTimerId] = useState([]);
+  let [selectedCity, setSelectedCity] = useState([]);
 
-  useEffect(() => {
-    if (!searchTerm) return;
+  async function searchCities(searchString) {
+    if (!searchString) return [];
 
-    const delayDebounceFn = setTimeout(async () => {
-      let params = `city=${searchTerm}`;
-      let response = await fetch(`https://cors-anywhere.herokuapp.com/https://nominatim.openstreetmap.org/search?${params}&format=json&addressdetails=1`);
-      let data = await response.json();
-      console.log(data)
-      setAutocompleteCities(data.filter(city => city.address.city));
-    }, 1000)
-
-    return () => clearTimeout(delayDebounceFn)
-  }, [searchTerm])
-
-  async function searchCities(searchString, callback) {
     let params = `city=${searchString}`;
-        let response = await fetch(`https://cors-anywhere.herokuapp.com/https://nominatim.openstreetmap.org/search?${params}&format=json&addressdetails=1`);
-        let data = await response.json();
-        console.log(data)
-        //setAutocompleteCities(data.filter(city => city.address.city));
-        let cityOptions = data
-          .filter(city => city.address.city)
-          .map(city => ({ value: city.address.city, label: city.address.city }))
-        callback(cityOptions);
+    let response = await fetch(`https://cors-anywhere.herokuapp.com/https://nominatim.openstreetmap.org/search?${params}&format=json&addressdetails=1`);
+    let data = await response.json();
+    console.log('data', data)
 
-      // setTimeout(async () => {
-      // }, 1000)
+    let cities = data.filter(city => city.address.city)
+    console.log('cities', cities)
 
+    let cityOptions = 
+      cities.map(city => {
+        return { 
+          value: city.address.city, 
+          label: `${city.address.city}, ${city.address.country}`,
+          lat: city.lat,
+          lon: city.lon
+        }
+      })
+    console.log('options', cityOptions)
+
+    return cityOptions;
   }
 
+  function loadOptions(searchString, callback) {
+    if (debounceTimerId) clearTimeout(debounceTimerId);
+    let id = setTimeout(async () => {
+      callback(await searchCities(searchString));
+    }, 1000);
+    setDebounceTimerId(id);
+  }
+
+  const styles = {
+    container: base => ({
+      ...base,
+      flex: 1
+    })
+  };
+
   return (
-    <form className="input-container">
-      <div>
-      <AsyncSelect loadOptions={searchCities} />
-
+    <div className="input-container">
+      <AsyncSelect 
+        value={selectedCity}
+        onChange={setSelectedCity}
+        styles={styles} 
+        loadOptions={loadOptions}
+        />
+      <div className="button-forecast">
+        <button onClick={() => getForecast()}>Get forecast</button>
       </div>
-
-      {/* <input 
-        type="text"
-        placeholder="Enter city..."
-        onChange={(e) => setSearchTerm(e.target.value)}
-        list="cities"/>
-
-      <datalist id="cities">
-        {autocompleteCities.map((city, i) => (
-          <option key={i}>{city.address.city}</option>
-        ))}
-      </datalist> */}
-      <div>
-      <button onClick={() => getForecast()}>Get forecast</button>
-      </div>
-    </form>
+    </div>
   )
 }
 
