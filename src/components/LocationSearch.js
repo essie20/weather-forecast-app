@@ -9,7 +9,7 @@ function LocationSearch({ getForecast }) {
   async function searchCities(searchString) {
     if (!searchString) return [];
     let params = `city=${searchString}`;
-    let response = await fetch(`https://cors-anywhere.herokuapp.com/https://nominatim.openstreetmap.org/search?${params}&format=json&addressdetails=1`);
+    let response = await fetch(`https://nominatim.openstreetmap.org/search?${params}&format=json&addressdetails=1`);
     let data = await response.json();
     let cities = data.filter(city => city.address.city)
     let cityOptions = 
